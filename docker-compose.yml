@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  ollama-container:
+    image: ollama/ollama
+    container_name: ollama-container
+    volumes:
+      - ./data/ollama:/root/.ollama
+      - ./Modelfile:/Modelfile
+      - ./Llama-3-ELYZA-JP-8B-q4_k_m.gguf:/Llama-3-ELYZA-JP-8B-q4_k_m.gguf
+    ports:
+      - 11434:11434
+    restart: always
+    entrypoint: >
+      /bin/sh -c "
+        ollama serve &
+        sleep 5 &&
+        ollama create elyza:jp8b -f /Modelfile &&
+        tail -f /dev/null
+      "
+
+  streamlit-app:
+    build: .
+    container_name: streamlit-app
+    volumes:
+      - .:/app
+    ports:
+      - 8501:8501
+    depends_on:
+      - ollama-container
+    restart: always
